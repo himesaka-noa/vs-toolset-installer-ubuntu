@@ -687,14 +687,14 @@
     ]
   },
   {
-    "name": "vs-msmooth",
+    "name": "vs-msmoosh",
     "install": "source",
     "url": "https://github.com/dubhater/vapoursynth-msmoosh.git",
     "url_type": "git",
     "compile_mode": "default",
     "autogen": true,
     "post_install_script": [
-      "sudo ln -s /usr/local/lib/libmsmooth.* /usr/local/lib/vapoursynth/"
+      "sudo ln -s /usr/local/lib/libmsmoosh.* /usr/local/lib/vapoursynth/"
     ]
   },
   {
