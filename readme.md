@@ -20,4 +20,4 @@ Here is a list of known plugins with build issues. They will be added once the i
 `vs-waifu2x`, `vs-vmaf`, `vs-vsf`, `vs-xyvsf`, `vs-svp1`, `vs-svp2`, `vs-vcfreq`, `vs-vcmod`, `vs-vcmove`, `vs-avsreader`, `vs-znedi3`
 
 ## Compatibility
-This script is only tested on Ubuntu 18.04 and 19+. It will definitely not work on any non-debian derivatives.
+This script is only tested on Ubuntu 18.04 and 19+, and there are known build issues with 16.04. It will definitely not work on any non-debian derivatives.
