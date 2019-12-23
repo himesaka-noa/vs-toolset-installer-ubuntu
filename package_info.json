@@ -84,6 +84,18 @@
     ]
   },
   {
+    "name": "w2xc",
+    "install": "source",
+    "url": "https://github.com/DeadSix27/waifu2x-converter-cpp.git",
+    "url_type": "git",
+    "git_tag": "v5.3.3",
+    "compile_mode": "cmake",
+    "dependencies": [
+      "libopencv-dev",
+      "ocl-icd-opencl-dev"
+    ]
+  },
+  {
     "name": "l-smash",
     "install": "source",
     "url": "https://github.com/l-smash/l-smash.git",
@@ -336,6 +348,9 @@
     "autogen": true,
     "dependencies": [
       "yasm"
+    ],
+    "post_install_script": [
+      "sudo ln -s /usr/local/lib/libnnedi3* /usr/local/lib/vapoursynth/"
     ]
   },
   {
@@ -448,7 +463,10 @@
     "install": "source",
     "url": "https://github.com/Irrational-Encoding-Wizardry/Vapoursynth-RemapFrames.git",
     "url_type": "git",
-    "compile_mode": "meson"
+    "compile_mode": "meson",
+    "post_install_script": [
+      "sudo ln -s /usr/local/lib/x86_64-linux-gnu/vapoursynth/libremapframes.so /usr/local/lib/vapoursynth/"
+    ]
   },
   {
     "name": "vs-fvsfunc",
@@ -466,7 +484,10 @@
     "install": "source",
     "url": "https://github.com/Irrational-Encoding-Wizardry/Vapoursynth-VFRToCFR.git",
     "url_type": "git",
-    "compile_mode": "meson"
+    "compile_mode": "meson",
+    "post_install_script": [
+      "sudo ln -s /usr/local/lib/x86_64-linux-gnu/vapoursynth/libvfrtocfr.so /usr/local/lib/vapoursynth/"
+    ]
   },
   {
     "name": "vs-hysteria",
@@ -597,11 +618,11 @@
       "libboost-all-dev"
     ],
     "post_install_script": [
-      "sudo cp build/libknlmeanscl.so /usr/local/lib/vapoursynth/"
+      "sudo ln -s /usr/local/lib/x86_64-linux-gnu/vapoursynth/libknlmeanscl.so /usr/local/lib/vapoursynth/"
     ]
   },
   {
-    "name": "vs-wrap",
+    "name": "vs-warp",
     "install": "source",
     "url": "https://github.com/dubhater/vapoursynth-awarpsharp2.git",
     "url_type": "git",
@@ -990,5 +1011,19 @@
     "url": "https://github.com/VFR-maniac/VapourSynth-ReduceFlicker.git",
     "url_type": "git",
     "compile_mode": "default"
+  },
+  {
+    "name": "vs-w2xc",
+    "install": "source",
+    "url": "https://github.com/HomeOfVapourSynthEvolution/VapourSynth-Waifu2x-w2xc.git",
+    "url_type": "git",
+    "dependencies": [
+      "w2xc"
+    ],
+    "compile_mode": "meson",
+    "post_install_script": [
+      "sudo ln -s /usr/local/lib/libw2xc.so /usr/lib/libw2xc.so",
+      "sudo ln -s /usr/local/lib/libopencv* /usr/lib/"
+    ]
   }
 ]
