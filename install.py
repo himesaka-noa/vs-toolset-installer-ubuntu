@@ -30,7 +30,7 @@ logging.getLogger('').addHandler(console)
 today = datetime.datetime.today()
 date_string = str(today.year) + str(today.month).zfill(2) + str(today.day).zfill(2)
 python_script_install_location = '/usr/lib/python3/dist-packages'
-base_dependencies = ['git', 'checkinstall', 'autoconf', 'pkg-config', 'meson', 'ninja-build', 'libtool']
+base_dependencies = ['git', 'checkinstall', 'autoconf', 'pkg-config', 'meson', 'ninja-build', 'libtool', 'cmake']
 
 
 def check_success(func):
@@ -69,8 +69,9 @@ def pip_check_installed(pkg_name):
 
 
 def vs_plugin_check_installed(plugin_name):
-    resp = run_cmd(['python3', '-c',
-                    '"from vapoursynth import core; exit(0) if \'{}\' in dir(core) else exit(1)"'.format(plugin_name)])
+    resp = run_cmd(
+        ['python3 -c "from vapoursynth import core; exit(0) if \'{}\' in dir(core) else exit(1)"'.format(plugin_name)],
+        shell=True)
     if resp.returncode == 0:
         return True
     return False
@@ -105,13 +106,24 @@ def untar_and_delete(tar_file):
 
 
 @check_success
-def git_clone(repo_url):
-    return run_cmd(['git', 'clone', repo_url])
+def git_clone(repo_url, tag=None):
+    res = run_cmd(['git', 'clone', repo_url])
+    if tag:
+        current_dir = os.getcwd()
+        os.chdir(repo_url.split('/')[-1].split('.')[0])
+        run_cmd(['git', 'checkout', tag])
+        os.chdir(current_dir)
+    return res
 
 
 @check_success
 def download_file(url):
     return run_cmd(['wget', url])
+
+
+@check_success
+def apt_update():
+    return run_cmd(['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt-get', '-y', 'update'])
 
 
 @check_success
@@ -145,8 +157,13 @@ def configure(configure_options):
 
 
 @check_success
+def cmake():
+    return run_cmd(['cmake ..'], shell=True)
+
+
+@check_success
 def make():
-    return run_cmd(['make'])
+    return run_cmd(['make', '-j4'])
 
 
 @check_success
@@ -203,6 +220,39 @@ def meson_compile(folder_name, pkg_name=None, pre_install_script=None,
             logging.error('ninja compile for {} has failed.'.format(pkg_name))
             return False
         if not check_install(pkg_name, pkg_version, ninja=True):
+            logging.error('checkinstall for {} has failed.'.format(pkg_name))
+            return False
+        if post_install_script:
+            for cmd in post_install_script:
+                if not run_shell_cmd(cmd):
+                    logging.error('Post installation command: {} has failed.'.format(cmd))
+                    return False
+        return True
+
+
+def cmake_compile(folder_name, pkg_name=None, pre_install_script=None,
+                  post_install_script=None):
+    current_dir = os.getcwd()
+    with ExitStack() as stack:
+        stack.callback(partial(os.chdir, current_dir))
+        os.chdir(folder_name)
+        pkg_name = pkg_name if pkg_name else folder_name
+        pkg_version = date_string
+        if pre_install_script:
+            for cmd in pre_install_script:
+                if not run_shell_cmd(cmd):
+                    logging.error('Pre installation command: {} has failed.'.format(cmd))
+                    return False
+        delete_folder('build')
+        os.mkdir('build')
+        os.chdir('build')
+        if not cmake():
+            logging.error('cmake for {} has failed.'.format(pkg_name))
+            return False
+        if not make():
+            logging.error('make for {} has failed.'.format(pkg_name))
+            return False
+        if not check_install(pkg_name, pkg_version):
             logging.error('checkinstall for {} has failed.'.format(pkg_name))
             return False
         if post_install_script:
@@ -319,7 +369,8 @@ def check_and_install(pkg_name, all_pkg_info):
             # remove existing repos to prevent clone error
             if os.path.exists(folder_name):
                 delete_folder(folder_name)
-            if not git_clone(pkg_info['url']):
+            tag = pkg_info.get('git_tag', None)
+            if not git_clone(pkg_info['url'], tag):
                 return False
 
         elif pkg_info['url_type'] == 'targz':
@@ -350,7 +401,11 @@ def check_and_install(pkg_name, all_pkg_info):
             if not custom_compile(folder_name, pkg_info['install_script']):
                 return False
         elif pkg_info['compile_mode'] == 'cmake':
-            raise NotImplementedError()
+            pre_install_ops = pkg_info.get('pre_install_script', [])
+            post_install_ops = pkg_info.get('post_install_script', [])
+            if not cmake_compile(folder_name, pkg_name=pkg_name, pre_install_script=pre_install_ops,
+                                 post_install_script=post_install_ops):
+                return False
         elif pkg_info['compile_mode'] == 'meson':
             pre_install_ops = pkg_info.get('pre_install_script', [])
             post_install_ops = pkg_info.get('post_install_script', [])
@@ -398,6 +453,7 @@ def main():
     with open(package_info_location, 'r') as f:
         pkg_info_list = json.load(f)
     all_pkg_info = {i['name']: i for i in pkg_info_list}
+    apt_update()
     if not args.package or len(args.package) == 0:
         install_list = base_dependencies + [i['name'] for i in pkg_info_list]
     elif args.plugins_only:
