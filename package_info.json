@@ -12,12 +12,18 @@
     "install": "source",
     "url": "https://github.com/vapoursynth/vapoursynth.git",
     "url_type": "git",
+    "git_tag": "R48",
     "compile_mode": "default",
     "autogen": true,
     "dependencies": [
       "zimg",
       "cython3",
-      "Cython"
+      "Cython",
+      "libass-dev",
+      "ffmpeg",
+      "libavcodec-dev",
+      "libavformat-dev",
+      "libavutil"
     ],
     "post_install_script": [
       "echo 'export LD_LIBRARY_PATH=/usr/local/lib' >> ~/.bashrc"
