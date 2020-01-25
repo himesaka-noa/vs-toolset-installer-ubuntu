@@ -23,7 +23,7 @@
       "ffmpeg",
       "libavcodec-dev",
       "libavformat-dev",
-      "libavutil"
+      "libavutil-dev"
     ],
     "post_install_script": [
       "echo 'export LD_LIBRARY_PATH=/usr/local/lib' >> ~/.bashrc"
